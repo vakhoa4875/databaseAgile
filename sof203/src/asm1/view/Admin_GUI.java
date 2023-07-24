@@ -5,7 +5,7 @@
 package asm1.view;
 
 import asm1.entity.*;
-import entity.NhanVien;
+//import entity.NhanVien;
 import java.awt.Image;
 import java.io.File;
 import sof203.Reusable;
@@ -13,8 +13,8 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+//import java.util.logging.Level;
+//import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.ImageIcon;
