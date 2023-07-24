@@ -191,7 +191,7 @@ public class Admin_GUI extends javax.swing.JFrame {
         btnSave4 = new javax.swing.JButton();
         btnDel4 = new javax.swing.JButton();
         jScrollPane7 = new javax.swing.JScrollPane();
-        tblGV1 = new javax.swing.JTable();
+        tblPH = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -1366,7 +1366,7 @@ public class Admin_GUI extends javax.swing.JFrame {
             }
         });
 
-        tblGV1.setModel(new javax.swing.table.DefaultTableModel(
+        tblPH.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null, null, null},
                 {null, null, null, null, null, null},
@@ -1388,12 +1388,12 @@ public class Admin_GUI extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
-        tblGV1.addMouseListener(new java.awt.event.MouseAdapter() {
+        tblPH.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                tblGV1MouseClicked(evt);
+                tblPHMouseClicked(evt);
             }
         });
-        jScrollPane7.setViewportView(tblGV1);
+        jScrollPane7.setViewportView(tblPH);
 
         javax.swing.GroupLayout jPanel11Layout = new javax.swing.GroupLayout(jPanel11);
         jPanel11.setLayout(jPanel11Layout);
@@ -1668,27 +1668,31 @@ public class Admin_GUI extends javax.swing.JFrame {
     }//GEN-LAST:event_txtStartDateActionPerformed
 
     private void btnNew4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNew4ActionPerformed
-        // TODO add your handling code here:
+        clearPH();
     }//GEN-LAST:event_btnNew4ActionPerformed
 
     private void btnUpdate4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdate4ActionPerformed
-        // TODO add your handling code here:
+        update("phongHoc");
+        fillToTable("phongHoc");
     }//GEN-LAST:event_btnUpdate4ActionPerformed
 
     private void btnSave4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSave4ActionPerformed
-        // TODO add your handling code here:
+        addNew("phongHoc");
+        fillToTable("phongHoc");
     }//GEN-LAST:event_btnSave4ActionPerformed
 
     private void btnDel4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDel4ActionPerformed
-        // TODO add your handling code here:
+        delete("phongHoc");
+        fillToTable("phongHoc");
+        clearSV();
     }//GEN-LAST:event_btnDel4ActionPerformed
 
-    private void tblGV1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblGV1MouseClicked
+    private void tblPHMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblPHMouseClicked
         // TODO add your handling code here:
-    }//GEN-LAST:event_tblGV1MouseClicked
+    }//GEN-LAST:event_tblPHMouseClicked
 
     private void txtEndDateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtEndDateActionPerformed
-        // TODO add your handling code here:
+        fillForm("phongHoc");
     }//GEN-LAST:event_txtEndDateActionPerformed
 
     /**
@@ -1871,7 +1875,7 @@ public class Admin_GUI extends javax.swing.JFrame {
             end_date = LocalDate.parse(txtEndDate.getText());
         } catch (Exception ex) {
             thongBao += "\nparse LocalDate failed";
-            check = false;            
+            check = false;
         }
         if (maPhong.isBlank() || maPhong.isEmpty() || maPhong.length() > 5) {
             thongBao += "\nMã Phòng học là chuỗi có độ dài từ 1->5 và không blank";
@@ -1974,6 +1978,13 @@ public class Admin_GUI extends javax.swing.JFrame {
                     check = true;
                 }
             }
+            case "phongHoc" -> {
+                index = tblPH.getSelectedRow();
+                if (index != -1) {
+                    phongHoc = dsPH.get(index);
+                    check = true;
+                }
+            }
         }
         return check;
     }
@@ -2010,7 +2021,6 @@ public class Admin_GUI extends javax.swing.JFrame {
 
             con.close();
         } catch (ClassNotFoundException | SQLException ex) {
-            ex.printStackTrace();
             System.out.println(ex);
         }
     }
@@ -2050,11 +2060,12 @@ public class Admin_GUI extends javax.swing.JFrame {
             System.out.println("insertion failed");
         }
     }
+
     private void insertPH(Connection con) throws SQLException {
         //? stand for a placeholder
         String query = "insert into phongHoc values (?, ?, ?, ?, ?, ?)";
         PreparedStatement ps = con.prepareStatement(query);
-        
+
         for (Lop temp : dsLop) {
             if (tenLop.equals(temp.getTenLop())) {
                 maLop = temp.getMaLop();
@@ -2315,12 +2326,14 @@ public class Admin_GUI extends javax.swing.JFrame {
             System.out.println("deletion failed");
         }
     }
+
     private void deletePH(Connection con) throws SQLException {
         String query = "delete from phongHoc where maPH = ? and lichHoc = ?";
         PreparedStatement ps = con.prepareStatement(query);
 
         // set value for placeholder
-        ps.setString(1, giangVien.getMaGV());
+        ps.setString(1, phongHoc.getMaPhong());
+        ps.setString(2, phongHoc.getLichHoc());
         // execute insert statement
         int rowsAffected = ps.executeUpdate();
         if (rowsAffected > 0) {
@@ -2378,6 +2391,9 @@ public class Admin_GUI extends javax.swing.JFrame {
                 }
                 case "sinhVien" -> {
                     updateSV(con);
+                }
+                case "phongHoc" -> {
+                    updatePH(con);
                 }
             }
             con.close();
@@ -2480,6 +2496,43 @@ public class Admin_GUI extends javax.swing.JFrame {
             System.out.println("Update failed");
         }
     }
+
+    private void updatePH(Connection con) throws SQLException {
+        String updateQuery = "update phonghoc set maphong = ?, maGV = ?, lichHoc = ?, sDate = ?, eDate = ? , maLop = ? "
+                + "where maphong = ?, lichhoc = ?";
+        PreparedStatement ps = con.prepareStatement(updateQuery);
+
+        for (Lop temp : dsLop) {
+            if (tenLop.equals(temp.getTenLop())) {
+                maLop = temp.getMaLop();
+                check = true;
+                break;
+            }
+        }
+        for (GiangVien temp : dsGV) {
+            if (tenGV.equals(temp.getTenGV())) {
+                maGV = temp.getMaGV();
+                check = true;
+                break;
+            }
+        }
+        ps.setString(1, maPhong);
+        ps.setString(2, maGV);
+        ps.setString(3, lichHoc);
+        ps.setDate(4, Date.valueOf(start_date));
+        ps.setDate(5, Date.valueOf(end_date));
+        ps.setString(6, maLop);
+        ps.setString(7, phongHoc.getMaPhong());
+        ps.setString(8, phongHoc.getLichHoc());
+        // execute insert statement
+        int rowsAffected = ps.executeUpdate();
+        if (rowsAffected > 0) {
+            System.out.println("Update: " + rowsAffected + " rows affected");
+            dsPH.set(index, new PhongHoc(maPhong, maLop, maGV, lichHoc, start_date, end_date));
+        } else {
+            System.out.println("Update failed");
+        }
+    }
 // lấy dữ liệu từ arraylist đổ lên form
 
     private void show1stEle() {
@@ -2500,6 +2553,10 @@ public class Admin_GUI extends javax.swing.JFrame {
         if (!dsSV.isEmpty()) {
             sinhVien = dsSV.get(0);
             fillFormSV();
+        }
+        if (!dsPH.isEmpty()) {
+//            phongHoc = dsPH.get(0);
+//            fillFormPH();
         }
     }
 
@@ -2522,6 +2579,9 @@ public class Admin_GUI extends javax.swing.JFrame {
             }
             case "sinhVien" -> {
                 fillFormSV();
+            }
+            case "phongHoc" -> {
+                fillFormPH();
             }
         }
     }
@@ -2575,6 +2635,35 @@ public class Admin_GUI extends javax.swing.JFrame {
         }
     }
 
+    private void fillFormPH() {
+        txtMaPhong.setText(phongHoc.getMaPhong());
+        txtLichHoc.setText(phongHoc.getLichHoc());
+        txtStartDate.setText(phongHoc.getStart_date().toString());
+        txtEndDate.setText(phongHoc.getEnd_date().toString());
+
+        for (Lop temp : dsLop) {
+            if (phongHoc.getMaLop().equals(temp.getMaLop())) {
+                tenLop = temp.getTenLop();
+                check = true;
+                break;
+            }
+        }
+        for (GiangVien temp : dsGV) {
+            if (phongHoc.getMaGV().equals(temp.getMaGV())) {
+                tenGV = temp.getTenGV();
+                check = true;
+                break;
+            }
+        }
+        if (!check) {
+            JOptionPane.showMessageDialog(this, "foreign key fk_ph_gv || fk_ph_lop is conflited");
+            return;
+        }
+
+        txtTenLopPH.setText(tenLop);
+        txtTenGVPH.setText(tenGV);
+    }
+
     private void clearGV() {
         txtMaGV.setText("");
         txtTenGV.setText("");
@@ -2596,6 +2685,15 @@ public class Admin_GUI extends javax.swing.JFrame {
         txtLopSV.setText("");
         lblAvatarSV.setIcon(null);
         lblAvatarSV.setText("<avatar>");
+    }
+
+    private void clearPH() {
+        txtMaPhong.setText("");
+        txtLichHoc.setText("");
+        txtStartDate.setText("");
+        txtEndDate.setText("");
+        txtTenLopPH.setText("");
+        txtTenGVPH.setText("");
     }
 // lấy dữ liệu có sẵn từ database đổ lên model của các loại JTable
 
@@ -2620,6 +2718,8 @@ public class Admin_GUI extends javax.swing.JFrame {
                     uploadGV(con);
                 case "sinhVien" ->
                     uploadSV(con);
+                case "phongHoc" ->
+                    uploadPH(con);
             }
 
             con.close();
@@ -2680,9 +2780,7 @@ public class Admin_GUI extends javax.swing.JFrame {
     }
 
     private void uploadSV(Connection con) throws SQLException {
-        String query = """
-                       select sv.*, tenLop from sinhVien sv
-                       join lop on lop.maLop = sv.maLop""";
+        String query = "select * from sinhVien";
         Statement st = con.createStatement();
         ResultSet rs = st.executeQuery(query);
         SinhVien temp;
@@ -2690,7 +2788,7 @@ public class Admin_GUI extends javax.swing.JFrame {
             maSV = rs.getString("maSV");
             tenSV = rs.getString("tenSV");
             email = rs.getString("email");
-            maLop = rs.getString("tenLop");
+            maLop = rs.getString("malop");
             avatar = rs.getString("avatar");
             Date dob_data = rs.getDate("dob");
             gender = rs.getString("gender");
@@ -2698,6 +2796,26 @@ public class Admin_GUI extends javax.swing.JFrame {
             gender = rs.getString("gender");
             temp = new SinhVien(maSV, tenSV, dob, email, maLop, avatar, gender);
             dsSV.add(temp);
+        }
+    }
+    private void uploadPH(Connection con) throws SQLException {
+        String query = """
+                       select ph.*, tenLop, tenGV from phongHoc ph
+                       join lop on lop.maLop = ph.maLop
+                       join giangvien gv on gv.magv = ph.magv""";
+        Statement st = con.createStatement();
+        ResultSet rs = st.executeQuery(query);
+        PhongHoc temp;
+        while (rs.next()) {    
+            maPhong = rs.getString("maPhong");
+            maLop = rs.getString("maPhong");
+            maGV = rs.getString("maPhong");
+            lichHoc = rs.getString("maPhong");
+            start_date = rs.getDate("sdate").toLocalDate();
+            end_date = rs.getDate("edate").toLocalDate();
+            
+            temp = new PhongHoc(maPhong, maLop, maGV, lichHoc, start_date, end_date);
+            dsPH.add(temp);
         }
     }
 
@@ -2743,6 +2861,24 @@ public class Admin_GUI extends javax.swing.JFrame {
                         }
                     }
                     Object[] row = new Object[]{temp.getMaSV(), temp.getTenSV(), temp.getDob(), temp.getEmail(), tenLop};
+                    model.addRow(row);
+                }
+            }
+            case "phongHoc" -> {
+                model = (DefaultTableModel) tblPH.getModel();
+                model.setRowCount(0);
+                for (PhongHoc temp : dsPH) {
+                    for (Lop lop : dsLop) {
+                        if (temp.getMaLop().equals(lop.getMaLop())) {
+                            tenLop = lop.getTenLop();
+                        }
+                    }
+                    for (GiangVien gv : dsGV) {
+                        if (temp.getMaGV().equals(gv.getMaGV())) {
+                            tenGV = gv.getTenGV();
+                        }
+                    }
+                    Object[] row = new Object[]{temp.getMaPhong(), tenLop, tenGV, temp.getLichHoc(), temp.getStart_date(), temp.getEnd_date()};
                     model.addRow(row);
                 }
             }
@@ -2841,9 +2977,9 @@ public class Admin_GUI extends javax.swing.JFrame {
     private javax.swing.JLabel lblAvatarGV;
     private javax.swing.JLabel lblAvatarSV;
     private javax.swing.JTable tblGV;
-    private javax.swing.JTable tblGV1;
     private javax.swing.JTable tblLophoc;
     private javax.swing.JTable tblMonhoc;
+    private javax.swing.JTable tblPH;
     private javax.swing.JTable tblSV;
     private javax.swing.JTextField txtDOBGV;
     private javax.swing.JTextField txtDOBSV;
