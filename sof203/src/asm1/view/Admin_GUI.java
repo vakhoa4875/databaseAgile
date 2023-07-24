@@ -1688,11 +1688,11 @@ public class Admin_GUI extends javax.swing.JFrame {
     }//GEN-LAST:event_btnDel4ActionPerformed
 
     private void tblPHMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblPHMouseClicked
-        // TODO add your handling code here:
+        fillForm("phongHoc");
     }//GEN-LAST:event_tblPHMouseClicked
 
     private void txtEndDateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtEndDateActionPerformed
-        fillForm("phongHoc");
+        
     }//GEN-LAST:event_txtEndDateActionPerformed
 
     /**
@@ -1896,8 +1896,8 @@ public class Admin_GUI extends javax.swing.JFrame {
     }
 
     // check trùng khóa chính
-    private Boolean checkDup(String tableName, String id) {
-        Boolean check = true;
+    private Boolean isDuplicated(String tableName, String id) {
+        check = true;
 
         switch (tableName) {
             case "mon" -> {
@@ -1947,7 +1947,7 @@ public class Admin_GUI extends javax.swing.JFrame {
     }
 
     //check liệu có hàng nào trong table đã được chọn chưa
-    private boolean checkSelected(String tableName) {
+    private boolean isSelected(String tableName) {
         check = false;
         switch (tableName) {
             case "mon" -> {
@@ -1991,7 +1991,6 @@ public class Admin_GUI extends javax.swing.JFrame {
 // Đủ các loại insert vô database
 
     private void insertInto(String tableName) {
-        check = false;
         String user = "sa";
         String pass = "root";
         String url = "jdbc:sqlserver://localhost:1433;databaseName="
@@ -2062,6 +2061,7 @@ public class Admin_GUI extends javax.swing.JFrame {
     }
 
     private void insertPH(Connection con) throws SQLException {
+        check = false;
         //? stand for a placeholder
         String query = "insert into phongHoc values (?, ?, ?, ?, ?, ?)";
         PreparedStatement ps = con.prepareStatement(query);
@@ -2202,14 +2202,14 @@ public class Admin_GUI extends javax.swing.JFrame {
         }
         switch (tableName) {
             case "mon" -> {
-                if (checkDup(tableName, maMon)) {
+                if (isDuplicated(tableName, maMon)) {
                     insertInto(tableName);
                 } else {
                     JOptionPane.showMessageDialog(this, thongBao);
                 }
             }
             case "lop" -> {
-                if (checkDup(tableName, maLop)) {
+                if (isDuplicated(tableName, maLop)) {
                     insertInto(tableName);
                 } else {
                     JOptionPane.showMessageDialog(this, thongBao);
@@ -2217,7 +2217,7 @@ public class Admin_GUI extends javax.swing.JFrame {
             }
             case "giangVien" -> {
 //                System.out.println("nah");
-                if (checkDup(tableName, maGV)) {
+                if (isDuplicated(tableName, maGV)) {
 //                    System.out.println("no");
                     insertInto(tableName);
                 } else {
@@ -2225,14 +2225,14 @@ public class Admin_GUI extends javax.swing.JFrame {
                 }
             }
             case "sinhVien" -> {
-                if (checkDup(tableName, maSV)) {
+                if (isDuplicated(tableName, maSV)) {
                     insertInto(tableName);
                 } else {
                     JOptionPane.showMessageDialog(this, thongBao);
                 }
             }
             case "phongHoc" -> {
-                if (checkDup(tableName, maPhong + "," + lichHoc)) {
+                if (isDuplicated(tableName, maPhong + "," + lichHoc)) {
                     insertInto(tableName);
                 } else {
                     JOptionPane.showMessageDialog(this, thongBao);
@@ -2243,7 +2243,7 @@ public class Admin_GUI extends javax.swing.JFrame {
 
 // đủ các loại xóa dữ liệu từ database
     private void delete(String tableName) {
-        if (!checkSelected(tableName)) {
+        if (!isSelected(tableName)) {
             JOptionPane.showMessageDialog(this, "Vui lòng chọn 1 hàng");
             return;
         }
@@ -2363,7 +2363,7 @@ public class Admin_GUI extends javax.swing.JFrame {
 
     private void update(String tableName) {
         thongBao = "";
-        if (!checkSelected(tableName)) {
+        if (!isSelected(tableName)) {
             JOptionPane.showMessageDialog(this, "Vui lòng chọn 1 hàng");
             return;
         }
@@ -2470,14 +2470,20 @@ public class Admin_GUI extends javax.swing.JFrame {
     }
 
     private void updateSV(Connection con) throws SQLException {
+        check = false;
         String updateQuery = "update sinhVien set maSV = ?, tenSV = ?, dob = ?, email = ?, maLop = ?, avatar = ?, gender = ? where maSV = ?";
         PreparedStatement ps = con.prepareStatement(updateQuery);
 
         for (Lop lopTemp : dsLop) {
             if (tenLop.equals(lopTemp.getTenLop())) {
                 maLop = lopTemp.getMaLop();
+                check = true;
                 break;
             }
+        }
+        if (!check) {
+            JOptionPane.showMessageDialog(this, "foreign key fk_sv_lop is conflited");
+            return;
         }
         ps.setString(1, maSV);
         ps.setString(2, tenSV);
@@ -2498,6 +2504,7 @@ public class Admin_GUI extends javax.swing.JFrame {
     }
 
     private void updatePH(Connection con) throws SQLException {
+        check = false;
         String updateQuery = "update phonghoc set maphong = ?, maGV = ?, lichHoc = ?, sDate = ?, eDate = ? , maLop = ? "
                 + "where maphong = ?, lichhoc = ?";
         PreparedStatement ps = con.prepareStatement(updateQuery);
@@ -2515,6 +2522,10 @@ public class Admin_GUI extends javax.swing.JFrame {
                 check = true;
                 break;
             }
+        } 
+        if (!check) {
+            JOptionPane.showMessageDialog(this, "foreign key fk_ph_gv || fk_ph_lop is conflited");
+            return;
         }
         ps.setString(1, maPhong);
         ps.setString(2, maGV);
@@ -2555,13 +2566,13 @@ public class Admin_GUI extends javax.swing.JFrame {
             fillFormSV();
         }
         if (!dsPH.isEmpty()) {
-//            phongHoc = dsPH.get(0);
-//            fillFormPH();
+            phongHoc = dsPH.get(0);
+            fillFormPH();
         }
     }
 
     private void fillForm(String tableName) {
-        if (!checkSelected(tableName)) {
+        if (!isSelected(tableName)) {
             JOptionPane.showMessageDialog(this, "Vui lòng chọn 1 hàng");
             return;
         }
@@ -2636,6 +2647,7 @@ public class Admin_GUI extends javax.swing.JFrame {
     }
 
     private void fillFormPH() {
+        check =true;
         txtMaPhong.setText(phongHoc.getMaPhong());
         txtLichHoc.setText(phongHoc.getLichHoc());
         txtStartDate.setText(phongHoc.getStart_date().toString());
@@ -2808,9 +2820,9 @@ public class Admin_GUI extends javax.swing.JFrame {
         PhongHoc temp;
         while (rs.next()) {    
             maPhong = rs.getString("maPhong");
-            maLop = rs.getString("maPhong");
-            maGV = rs.getString("maPhong");
-            lichHoc = rs.getString("maPhong");
+            maLop = rs.getString("maLop");
+            maGV = rs.getString("maGV");
+            lichHoc = rs.getString("lichHoc");
             start_date = rs.getDate("sdate").toLocalDate();
             end_date = rs.getDate("edate").toLocalDate();
             
@@ -2868,9 +2880,9 @@ public class Admin_GUI extends javax.swing.JFrame {
                 model = (DefaultTableModel) tblPH.getModel();
                 model.setRowCount(0);
                 for (PhongHoc temp : dsPH) {
-                    for (Lop lop : dsLop) {
-                        if (temp.getMaLop().equals(lop.getMaLop())) {
-                            tenLop = lop.getTenLop();
+                    for (Lop lopTemp : dsLop) {
+                        if (temp.getMaLop().equals(lopTemp.getMaLop())) {
+                            tenLop = lopTemp.getTenLop();
                         }
                     }
                     for (GiangVien gv : dsGV) {
