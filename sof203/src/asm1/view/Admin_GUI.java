@@ -33,33 +33,34 @@ public class Admin_GUI extends javax.swing.JFrame {
     String maGV, tenGV, maSV, tenSV, email = "", mota = "", avatar = "", gender;
     LocalDate dob, start_date, end_date;
     //tạo formatter để format lại dữ liệu loại date từ database
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    String thongBao = "", databaseName = "app_schooling";
+//    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    String thongBao = "";
+    String user = "sa", pass = "root", databaseName = "app_schooling";
     int index = -1;
     Mon mon;
     Lop lop;
     GiangVien giangVien;
     SinhVien sinhVien;
     PhongHoc phongHoc;
-    Reusable ru = new Reusable();
+//    Reusable ru = new Reusable();
     ArrayList<Mon> dsMon = new ArrayList<>();
     ArrayList<Lop> dsLop = new ArrayList<>();
     ArrayList<GiangVien> dsGV = new ArrayList<>();
     ArrayList<SinhVien> dsSV = new ArrayList<>();
     ArrayList<PhongHoc> dsPH = new ArrayList<>();
-    private String[] entities = new String[]{"mon", "lop", "giangVien", "sinhVien", "phongHoc"};
+    private final String[] etts = new String[]{"mon", "lop", "giangVien", "sinhVien", "phongHoc"};
 
     /**
      * Creates new form Admin_GUI
      */
     public Admin_GUI() {
         initComponents();
-        for (String entity : entities) {
+        for (String entity : etts) {
             uploadDatabase(entity);
             fillToTable(entity);
         }
         show1stEle();
-        this.setLocationRelativeTo(this);
+        this.setLocationRelativeTo(null);
     }
 
     /**
@@ -1497,7 +1498,7 @@ public class Admin_GUI extends javax.swing.JFrame {
     }//GEN-LAST:event_txtMonGVActionPerformed
 
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
-        addNew("giangVien");
+        insertInto("giangVien");
         fillToTable("giangVien");
     }//GEN-LAST:event_btnSaveActionPerformed
 
@@ -1534,7 +1535,7 @@ public class Admin_GUI extends javax.swing.JFrame {
     }//GEN-LAST:event_txtLopSVActionPerformed
 
     private void btnSave1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSave1ActionPerformed
-        addNew("sinhVien");
+        insertInto("sinhVien");
         fillToTable("sinhVien");
     }//GEN-LAST:event_btnSave1ActionPerformed
 
@@ -1555,7 +1556,7 @@ public class Admin_GUI extends javax.swing.JFrame {
     }//GEN-LAST:event_txtLophocActionPerformed
 
     private void btnSave2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSave2ActionPerformed
-        addNew("mon");
+        insertInto("mon");
         fillToTable("mon");
     }//GEN-LAST:event_btnSave2ActionPerformed
 
@@ -1577,7 +1578,7 @@ public class Admin_GUI extends javax.swing.JFrame {
     }//GEN-LAST:event_btnNew3ActionPerformed
 
     private void btnSave3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSave3ActionPerformed
-        addNew("lop");
+        insertInto("lop");
         fillToTable("lop");
     }//GEN-LAST:event_btnSave3ActionPerformed
 
@@ -1677,7 +1678,7 @@ public class Admin_GUI extends javax.swing.JFrame {
     }//GEN-LAST:event_btnUpdate4ActionPerformed
 
     private void btnSave4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSave4ActionPerformed
-        addNew("phongHoc");
+        insertInto("phongHoc");
         fillToTable("phongHoc");
     }//GEN-LAST:event_btnSave4ActionPerformed
 
@@ -1692,7 +1693,7 @@ public class Admin_GUI extends javax.swing.JFrame {
     }//GEN-LAST:event_tblPHMouseClicked
 
     private void txtEndDateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtEndDateActionPerformed
-        
+
     }//GEN-LAST:event_txtEndDateActionPerformed
 
     /**
@@ -1731,38 +1732,38 @@ public class Admin_GUI extends javax.swing.JFrame {
     }
 
 // đủ các loại check
-    Boolean check;
-
     // check data trên input form
-    private Boolean checkField(String tableName) {
+    private Boolean checkInsertedData(String tableName) {
         thongBao = "";
-        check = true;
+        Boolean check = true;
         switch (tableName) {
             case "mon" -> {
-                checkFieldMon();
+                check = checkFieldMon() && isNotDuplicated(tableName, maMon);
                 System.out.println(maMon + "|" + tenMon);
             }
             case "lop" -> {
-                checkFieldLop();
+                check = checkFieldLop() && isNotDuplicated(tableName, maLop);
                 System.out.println(tableName + "|" + maLop + "|" + tenLop);
             }
             case "giangVien" -> {
-                checkFieldGV();
+                check = checkFieldGV() && isNotDuplicated(tableName, maGV) && fkCheckGV();
                 System.out.println(tableName + "|" + maGV + "|" + tenGV);
             }
             case "sinhVien" -> {
-                checkFieldSV();
+                check = checkFieldSV() && isNotDuplicated(tableName, maSV) && fkCheckSV();
                 System.out.println(tableName + "|" + maSV + "|" + tenSV);
             }
             case "phongHoc" -> {
-                checkFieldPH();
+                check = checkFieldPH() && isNotDuplicated(tableName, maPhong + "," + lichHoc) && fkCheckPH();
                 System.out.println(tableName + "|" + maPhong + "|" + lichHoc);
             }
         }
         return check;
     }
 
-    private void checkFieldMon() {
+    private Boolean checkFieldMon() {
+        thongBao = "";
+        Boolean check = true;
         maMon = txtMamon.getText();
         tenMon = txtMonhoc.getText();
         if (maMon.isBlank() || maMon.isEmpty() || maMon.length() > 5) {
@@ -1773,9 +1774,12 @@ public class Admin_GUI extends javax.swing.JFrame {
             thongBao += "\nMôn học không được để trống hoặc blank";
             check = false;
         }
+        return check;
     }
 
-    private void checkFieldLop() {
+    private Boolean checkFieldLop() {
+        thongBao = "";
+        Boolean check = true;
         maLop = txtMalop.getText();
         tenLop = txtLophoc.getText();
         if (maLop.isBlank() || maLop.isEmpty() || maLop.length() > 5) {
@@ -1786,9 +1790,12 @@ public class Admin_GUI extends javax.swing.JFrame {
             thongBao += "\nMôn học không được để trống hoặc blank";
             check = false;
         }
+        return check;
     }
 
-    private void checkFieldGV() {
+    private Boolean checkFieldGV() {
+        thongBao = "";
+        Boolean check = true;
         maGV = txtMaGV.getText();
         tenGV = txtTenGV.getText();
         tenMon = txtMonGV.getText();
@@ -1802,13 +1809,13 @@ public class Admin_GUI extends javax.swing.JFrame {
             check = false;
         }
         if (tenMon.isBlank() || tenMon.isEmpty()) {
-            for (Mon temp : dsMon) {
-                if (!tenMon.equals(temp.getTenMon())) {
-                    thongBao += "\nMôn dạy chưa được đăng kí";
-                    check = false;
-                    break;
-                }
-            }
+//            for (Mon temp : dsMon) {
+//                if (!tenMon.equals(temp.getTenMon())) {
+//                    thongBao += "\nMôn dạy chưa được đăng kí";
+//                    check = false;
+//                    break;
+//                }
+//            }
             thongBao += "\nMôn dạy không được để trống hoặc blank";
             check = false;
         }
@@ -1820,27 +1827,35 @@ public class Admin_GUI extends javax.swing.JFrame {
             thongBao += "\nTên GV không được để trống hoặc blank";
             check = false;
         }
+        return check;
     }
 
-    private void checkFieldSV() {
+    private Boolean checkFieldSV() {
+        thongBao = "";
+        Boolean check = true;
         maSV = txtMaSV.getText();
         tenSV = txtTenSV.getText();
         tenLop = txtLopSV.getText();
         gender = txtGenderSV.getText();
-        dob = LocalDate.parse(txtDOBSV.getText());
         email = txtEmailSV.getText();
+        try {
+            dob = LocalDate.parse(txtDOBSV.getText());
+        } catch (Exception ex) {
+            thongBao += "\nparse LocalDate failed";
+            check = false;
+        }
+        for (Lop temp : dsLop) {
+            if (tenLop.equals(temp.getTenLop())) {
+                thongBao += "\nLớp học chưa được đăng kí";
+                check = true;
+                break;
+            }
+        }
         if (gender.isBlank() || gender.isEmpty()) {
             thongBao += "\nGiới tính không được để trống hoặc blank";
             check = false;
         }
         if (tenLop.isBlank() || tenLop.isEmpty()) {
-            for (Lop temp : dsLop) {
-                if (!tenLop.equals(temp.getTenLop())) {
-                    thongBao += "\nLớp học chưa được đăng kí";
-                    check = false;
-                    break;
-                }
-            }
             thongBao += "\nLớp học không được để trống hoặc blank";
             check = false;
         }
@@ -1852,9 +1867,10 @@ public class Admin_GUI extends javax.swing.JFrame {
             thongBao += "\nTên sinh viên không được để trống hoặc blank";
             check = false;
         }
+        return check;
     }
 
-    private boolean isValidLichHoc(String input) {
+    private boolean isValidLichHoc(String input) {//cre: chatGPT :V
         // The regex pattern to match the syntax: "ca <ca> <buoihoc>"
         String regex = "^ca\\s\\d+\\s\\d+$";
         // Compile the regex pattern
@@ -1865,11 +1881,29 @@ public class Admin_GUI extends javax.swing.JFrame {
         return matcher.matches();
     }
 
-    private void checkFieldPH() {
+    private Boolean checkFieldPH() {
+        thongBao = "";
+        Boolean check = true;
         maPhong = txtMaPhong.getText();
         tenLop = txtTenLopPH.getText();
         tenGV = txtTenGVPH.getText();
         lichHoc = txtLichHoc.getText();
+
+        for (Lop temp : dsLop) {
+            if (tenLop.equals(temp.getTenLop())) {
+                maLop = temp.getMaLop();
+                check = true;
+                break;
+            }
+        }
+        for (GiangVien temp : dsGV) {
+            if (tenGV.equals(temp.getTenGV())) {
+                maGV = temp.getMaGV();
+                check = true;
+                break;
+            }
+        }
+
         try {
             start_date = LocalDate.parse(txtStartDate.getText());
             end_date = LocalDate.parse(txtEndDate.getText());
@@ -1893,11 +1927,83 @@ public class Admin_GUI extends javax.swing.JFrame {
             thongBao += "\nLịch học phải theo syntax 'ca <ca> <buoiHoc>";
             check = false;
         }
+        return check;
+    }
+
+    private Boolean fkCheckGV() {
+        if (!checkFieldGV()) {
+            return false;
+        }
+        Boolean check = !checkFieldGV(); //check = false để kiểm tra 
+
+        for (Mon mh : dsMon) {
+            if (tenMon.equals(mh.getTenMon())) {
+                maMon = mh.getMaMon();
+                check = true;
+                break;
+            }
+        }
+        if (!check) {
+//            JOptionPane.showMessageDialog(this, "fk_gv_mon is conflicted");
+            thongBao += "fk_gv_mon is conflicted";
+        }
+
+        return check;
+    }
+
+    private Boolean fkCheckSV() {
+        if (!checkFieldSV()) {
+            return false;
+        }
+        Boolean check = !checkFieldSV();
+
+        for (Lop lh : dsLop) {
+            if (tenLop.equals(lh.getTenLop())) {
+                maLop = lh.getMaLop();
+                check = true;
+                break;
+            }
+        }
+        if (!check) {
+//            JOptionPane.showMessageDialog(this, "fk_sv_lop is conflicted");
+            thongBao += "fk_sv_lop is conflicted";
+        }
+
+        return check;
+    }
+
+    private Boolean fkCheckPH() {
+        if (!checkFieldPH()) {
+            return false;
+        }
+        Boolean check = !checkFieldPH();
+
+        for (Mon mh : dsMon) {
+            if (tenMon.equals(mh.getTenMon())) {
+                maMon = mh.getMaMon();
+                check = true;
+                break;
+            }
+        }
+
+        for (Lop lh : dsLop) {
+            if (tenLop.equals(lh.getTenLop())) {
+                maLop = lh.getMaLop();
+                check = true;
+                break;
+            }
+        }
+        if (!check) {
+//            JOptionPane.showMessageDialog(this, "fk_ph_lop || fk_ph_mon is conflicted");
+            thongBao += "fk_ph_lop || fk_ph_mon is conflicted";
+        }
+
+        return check;
     }
 
     // check trùng khóa chính
-    private Boolean isDuplicated(String tableName, String id) {
-        check = true;
+    private Boolean isNotDuplicated(String tableName, String id) {
+        Boolean check = true;
 
         switch (tableName) {
             case "mon" -> {
@@ -1948,7 +2054,7 @@ public class Admin_GUI extends javax.swing.JFrame {
 
     //check liệu có hàng nào trong table đã được chọn chưa
     private boolean isSelected(String tableName) {
-        check = false;
+        Boolean check = false;
         switch (tableName) {
             case "mon" -> {
                 index = tblMonhoc.getSelectedRow();
@@ -1991,8 +2097,11 @@ public class Admin_GUI extends javax.swing.JFrame {
 // Đủ các loại insert vô database
 
     private void insertInto(String tableName) {
-        String user = "sa";
-        String pass = "root";
+        thongBao = "";
+        if (!checkInsertedData(tableName)) {
+            JOptionPane.showMessageDialog(this, thongBao);
+            return;
+        }
         String url = "jdbc:sqlserver://localhost:1433;databaseName="
                 + databaseName + ";encrypt=false";
         try {
@@ -2061,7 +2170,7 @@ public class Admin_GUI extends javax.swing.JFrame {
     }
 
     private void insertPH(Connection con) throws SQLException {
-        check = false;
+        Boolean check = false;
         //? stand for a placeholder
         String query = "insert into phongHoc values (?, ?, ?, ?, ?, ?)";
         PreparedStatement ps = con.prepareStatement(query);
@@ -2194,52 +2303,52 @@ public class Admin_GUI extends javax.swing.JFrame {
     }
 
 //insert values into database then add to ArrayList
-    private void addNew(String tableName) {
-        thongBao = "";
-        if (!checkField(tableName)) {
-            JOptionPane.showMessageDialog(this, thongBao);
-            return;
-        }
-        switch (tableName) {
-            case "mon" -> {
-                if (isDuplicated(tableName, maMon)) {
-                    insertInto(tableName);
-                } else {
-                    JOptionPane.showMessageDialog(this, thongBao);
-                }
-            }
-            case "lop" -> {
-                if (isDuplicated(tableName, maLop)) {
-                    insertInto(tableName);
-                } else {
-                    JOptionPane.showMessageDialog(this, thongBao);
-                }
-            }
-            case "giangVien" -> {
-//                System.out.println("nah");
-                if (isDuplicated(tableName, maGV)) {
-//                    System.out.println("no");
-                    insertInto(tableName);
-                } else {
-                    JOptionPane.showMessageDialog(this, thongBao);
-                }
-            }
-            case "sinhVien" -> {
-                if (isDuplicated(tableName, maSV)) {
-                    insertInto(tableName);
-                } else {
-                    JOptionPane.showMessageDialog(this, thongBao);
-                }
-            }
-            case "phongHoc" -> {
-                if (isDuplicated(tableName, maPhong + "," + lichHoc)) {
-                    insertInto(tableName);
-                } else {
-                    JOptionPane.showMessageDialog(this, thongBao);
-                }
-            }
-        }
-    }
+//    private void insertInto(String tableName) {
+//        thongBao = "";
+//        if (!checkInsertedData(tableName)) {
+//            JOptionPane.showMessageDialog(this, thongBao);
+//            return;
+//        }
+//        switch (tableName) {
+//            case "mon" -> {
+//                if (isNotDuplicated(tableName, maMon)) {
+//                    insertInto(tableName);
+//                } else {
+//                    JOptionPane.showMessageDialog(this, thongBao);
+//                }
+//            }
+//            case "lop" -> {
+//                if (isNotDuplicated(tableName, maLop)) {
+//                    insertInto(tableName);
+//                } else {
+//                    JOptionPane.showMessageDialog(this, thongBao);
+//                }
+//            }
+//            case "giangVien" -> {
+////                System.out.println("nah");
+//                if (isNotDuplicated(tableName, maGV)) {
+////                    System.out.println("no");
+//                    insertInto(tableName);
+//                } else {
+//                    JOptionPane.showMessageDialog(this, thongBao);
+//                }
+//            }
+//            case "sinhVien" -> {
+//                if (isNotDuplicated(tableName, maSV)) {
+//                    insertInto(tableName);
+//                } else {
+//                    JOptionPane.showMessageDialog(this, thongBao);
+//                }
+//            }
+//            case "phongHoc" -> {
+//                if (isNotDuplicated(tableName, maPhong + "," + lichHoc)) {
+//                    insertInto(tableName);
+//                } else {
+//                    JOptionPane.showMessageDialog(this, thongBao);
+//                }
+//            }
+//        }
+//    }
 
 // đủ các loại xóa dữ liệu từ database
     private void delete(String tableName) {
@@ -2247,8 +2356,6 @@ public class Admin_GUI extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Vui lòng chọn 1 hàng");
             return;
         }
-        String user = "sa";
-        String pass = "root";
         String url = "jdbc:sqlserver://localhost:1433;databaseName="
                 + databaseName + ";encrypt=false";
         try {
@@ -2328,7 +2435,7 @@ public class Admin_GUI extends javax.swing.JFrame {
     }
 
     private void deletePH(Connection con) throws SQLException {
-        String query = "delete from phongHoc where maPH = ? and lichHoc = ?";
+        String query = "delete from phongHoc where maPhong = ? and lichHoc = ?";
         PreparedStatement ps = con.prepareStatement(query);
 
         // set value for placeholder
@@ -2338,7 +2445,7 @@ public class Admin_GUI extends javax.swing.JFrame {
         int rowsAffected = ps.executeUpdate();
         if (rowsAffected > 0) {
             System.out.println("Deletion: " + rowsAffected + " rows affected");
-            dsGV.remove(index);
+            dsPH.remove(index);
         } else {
             System.out.println("deletion failed");
         }
@@ -2367,12 +2474,10 @@ public class Admin_GUI extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Vui lòng chọn 1 hàng");
             return;
         }
-        if (!checkField(tableName)) {
+        if (!checkInsertedData(tableName)) {
             JOptionPane.showMessageDialog(this, thongBao);
             return;
         }
-        String user = "sa";
-        String pass = "root";
         String url = "jdbc:sqlserver://localhost:1433;databaseName="
                 + databaseName + ";encrypt=false";
         try {
@@ -2470,21 +2575,20 @@ public class Admin_GUI extends javax.swing.JFrame {
     }
 
     private void updateSV(Connection con) throws SQLException {
-        check = false;
         String updateQuery = "update sinhVien set maSV = ?, tenSV = ?, dob = ?, email = ?, maLop = ?, avatar = ?, gender = ? where maSV = ?";
         PreparedStatement ps = con.prepareStatement(updateQuery);
-
-        for (Lop lopTemp : dsLop) {
-            if (tenLop.equals(lopTemp.getTenLop())) {
-                maLop = lopTemp.getMaLop();
-                check = true;
-                break;
-            }
-        }
-        if (!check) {
-            JOptionPane.showMessageDialog(this, "foreign key fk_sv_lop is conflited");
-            return;
-        }
+//
+//        for (Lop lopTemp : dsLop) {
+//            if (tenLop.equals(lopTemp.getTenLop())) {
+//                maLop = lopTemp.getMaLop();
+//                check = true;
+//                break;
+//            }
+//        }
+//        if (!check) {
+//            JOptionPane.showMessageDialog(this, "foreign key fk_sv_lop is conflited");
+//            return;
+//        }
         ps.setString(1, maSV);
         ps.setString(2, tenSV);
         ps.setDate(3, Date.valueOf(dob));
@@ -2504,29 +2608,11 @@ public class Admin_GUI extends javax.swing.JFrame {
     }
 
     private void updatePH(Connection con) throws SQLException {
-        check = false;
+//        Boolean check = false;
         String updateQuery = "update phonghoc set maphong = ?, maGV = ?, lichHoc = ?, sDate = ?, eDate = ? , maLop = ? "
-                + "where maphong = ?, lichhoc = ?";
+                + "where maphong = ? and lichhoc = ?";
         PreparedStatement ps = con.prepareStatement(updateQuery);
-
-        for (Lop temp : dsLop) {
-            if (tenLop.equals(temp.getTenLop())) {
-                maLop = temp.getMaLop();
-                check = true;
-                break;
-            }
-        }
-        for (GiangVien temp : dsGV) {
-            if (tenGV.equals(temp.getTenGV())) {
-                maGV = temp.getMaGV();
-                check = true;
-                break;
-            }
-        } 
-        if (!check) {
-            JOptionPane.showMessageDialog(this, "foreign key fk_ph_gv || fk_ph_lop is conflited");
-            return;
-        }
+        
         ps.setString(1, maPhong);
         ps.setString(2, maGV);
         ps.setString(3, lichHoc);
@@ -2647,7 +2733,6 @@ public class Admin_GUI extends javax.swing.JFrame {
     }
 
     private void fillFormPH() {
-        check =true;
         txtMaPhong.setText(phongHoc.getMaPhong());
         txtLichHoc.setText(phongHoc.getLichHoc());
         txtStartDate.setText(phongHoc.getStart_date().toString());
@@ -2656,20 +2741,14 @@ public class Admin_GUI extends javax.swing.JFrame {
         for (Lop temp : dsLop) {
             if (phongHoc.getMaLop().equals(temp.getMaLop())) {
                 tenLop = temp.getTenLop();
-                check = true;
                 break;
             }
         }
         for (GiangVien temp : dsGV) {
             if (phongHoc.getMaGV().equals(temp.getMaGV())) {
                 tenGV = temp.getTenGV();
-                check = true;
                 break;
             }
-        }
-        if (!check) {
-            JOptionPane.showMessageDialog(this, "foreign key fk_ph_gv || fk_ph_lop is conflited");
-            return;
         }
 
         txtTenLopPH.setText(tenLop);
@@ -2711,8 +2790,6 @@ public class Admin_GUI extends javax.swing.JFrame {
 
     private void uploadDatabase(String tableName) {
         String query = "select * from " + tableName;
-        String user = "sa";
-        String pass = "root";
         String url = "jdbc:sqlserver://localhost:1433;databaseName="
                 + databaseName + ";encrypt=false";
         try {
@@ -2810,6 +2887,7 @@ public class Admin_GUI extends javax.swing.JFrame {
             dsSV.add(temp);
         }
     }
+
     private void uploadPH(Connection con) throws SQLException {
         String query = """
                        select ph.*, tenLop, tenGV from phongHoc ph
@@ -2818,14 +2896,14 @@ public class Admin_GUI extends javax.swing.JFrame {
         Statement st = con.createStatement();
         ResultSet rs = st.executeQuery(query);
         PhongHoc temp;
-        while (rs.next()) {    
+        while (rs.next()) {
             maPhong = rs.getString("maPhong");
             maLop = rs.getString("maLop");
             maGV = rs.getString("maGV");
             lichHoc = rs.getString("lichHoc");
             start_date = rs.getDate("sdate").toLocalDate();
             end_date = rs.getDate("edate").toLocalDate();
-            
+
             temp = new PhongHoc(maPhong, maLop, maGV, lichHoc, start_date, end_date);
             dsPH.add(temp);
         }
@@ -2883,11 +2961,13 @@ public class Admin_GUI extends javax.swing.JFrame {
                     for (Lop lopTemp : dsLop) {
                         if (temp.getMaLop().equals(lopTemp.getMaLop())) {
                             tenLop = lopTemp.getTenLop();
+                            break;
                         }
                     }
                     for (GiangVien gv : dsGV) {
                         if (temp.getMaGV().equals(gv.getMaGV())) {
                             tenGV = gv.getTenGV();
+                            break;
                         }
                     }
                     Object[] row = new Object[]{temp.getMaPhong(), tenLop, tenGV, temp.getLichHoc(), temp.getStart_date(), temp.getEnd_date()};
