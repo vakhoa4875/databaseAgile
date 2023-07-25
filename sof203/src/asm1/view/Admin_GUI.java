@@ -1889,20 +1889,20 @@ public class Admin_GUI extends javax.swing.JFrame {
         tenGV = txtTenGVPH.getText();
         lichHoc = txtLichHoc.getText();
 
-        for (Lop temp : dsLop) {
-            if (tenLop.equals(temp.getTenLop())) {
-                maLop = temp.getMaLop();
-                check = true;
-                break;
-            }
-        }
-        for (GiangVien temp : dsGV) {
-            if (tenGV.equals(temp.getTenGV())) {
-                maGV = temp.getMaGV();
-                check = true;
-                break;
-            }
-        }
+//        for (Lop temp : dsLop) {
+//            if (tenLop.equals(temp.getTenLop())) {
+//                maLop = temp.getMaLop();
+//                check = true;
+//                break;
+//            }
+//        }
+//        for (GiangVien temp : dsGV) {
+//            if (tenGV.equals(temp.getTenGV())) {
+//                maGV = temp.getMaGV();
+//                check = true;
+//                break;
+//            }
+//        }
 
         try {
             start_date = LocalDate.parse(txtStartDate.getText());
@@ -1934,7 +1934,7 @@ public class Admin_GUI extends javax.swing.JFrame {
         if (!checkFieldGV()) {
             return false;
         }
-        Boolean check = !checkFieldGV(); //check = false để kiểm tra 
+        Boolean check = false; //check = false để kiểm tra 
 
         for (Mon mh : dsMon) {
             if (tenMon.equals(mh.getTenMon())) {
@@ -1955,7 +1955,7 @@ public class Admin_GUI extends javax.swing.JFrame {
         if (!checkFieldSV()) {
             return false;
         }
-        Boolean check = !checkFieldSV();
+        Boolean check = false;
 
         for (Lop lh : dsLop) {
             if (tenLop.equals(lh.getTenLop())) {
@@ -1976,12 +1976,12 @@ public class Admin_GUI extends javax.swing.JFrame {
         if (!checkFieldPH()) {
             return false;
         }
-        Boolean check = !checkFieldPH();
+        Boolean checkMon = false, checkLop = false;
 
         for (Mon mh : dsMon) {
             if (tenMon.equals(mh.getTenMon())) {
                 maMon = mh.getMaMon();
-                check = true;
+                checkMon = true;
                 break;
             }
         }
@@ -1989,10 +1989,11 @@ public class Admin_GUI extends javax.swing.JFrame {
         for (Lop lh : dsLop) {
             if (tenLop.equals(lh.getTenLop())) {
                 maLop = lh.getMaLop();
-                check = true;
+                checkLop = true;
                 break;
             }
         }
+        Boolean check = checkMon && checkLop;
         if (!check) {
 //            JOptionPane.showMessageDialog(this, "fk_ph_lop || fk_ph_mon is conflicted");
             thongBao += "fk_ph_lop || fk_ph_mon is conflicted";
